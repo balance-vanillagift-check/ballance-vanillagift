@@ -1,26 +1,19 @@
 {
-  "name": "__PROJECT_SLUG__",
+  "name": "vanilla-gift-c",
   "private": true,
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:client": "vite",
-    "dev:server": "node server/index.js",
-    "build": "vite build",
-    "preview": "vite preview",
-    "start": "node server/index.js"
+    "dev": "node server/index.js",
+    "start": "node server/index.js",
+    "deploy": "wrangler pages deploy public/"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^17.3.1",
-    "express": "^4.18.2",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "express": "^4.18.2"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.2.0",
-    "concurrently": "^8.2.2",
-    "vite": "^5.0.0"
+    "wrangler": "^3.0.0"
   }
 }

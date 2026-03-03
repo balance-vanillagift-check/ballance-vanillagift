@@ -1,7 +1,5 @@
 node_modules/
-dist/
 .env
-.env.local
-.vercel
-.output.txt
+.wrangler/
+dist/
 *.log
