@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /api/
 
-Sitemap: https://ballance-vanillagift-check.com/sitemap.xml
+Sitemap: https://balance-vanillagift-check.com/sitemap.xml
